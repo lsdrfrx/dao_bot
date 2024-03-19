@@ -4,5 +4,6 @@ WORKDIR /app
 COPY ./ ./
 
 RUN pip install -r requirements.txt
+RUN mkdir /tmp/dao
 
 CMD python main.py
