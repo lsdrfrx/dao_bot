@@ -1,6 +1,6 @@
 import asyncio
 import json
-from os import getenv
+import os
 
 from aiogram import Dispatcher
 from dotenv import load_dotenv
@@ -30,10 +30,14 @@ def create_json() -> None:
 async def main() -> None:
     logger.info("loading .env")
     load_dotenv()
-    TOKEN = getenv("TOKEN", "")
+    TOKEN = os.getenv("TOKEN", "")
 
     logger.info("starting dispatcher")
     bot = create_bot_instance(token=TOKEN)
+
+    if not os.path.exists("/tmp/dao"):
+        os.makedirs("/tmp/dao")
+
     db = DB()
     dp = Dispatcher(db=db)
     register_routes(dp)
