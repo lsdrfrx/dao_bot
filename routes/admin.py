@@ -11,6 +11,8 @@ from database import DB
 
 admin_router = Router()
 
+admins = ["lsxdr", "felisli", "Sup_iz_chaosa", "archeda"]
+
 
 class AdminStates(StatesGroup):
     menu = State()
@@ -28,9 +30,11 @@ class AdminStates(StatesGroup):
 
 @admin_router.message(Command("admin"))
 async def admin_handler(message: Message, state: FSMContext):
-    await message.answer("Авторизация прошла успешно")
-    await state.set_state(AdminStates.menu)
-    await menu_handler(message, state)
+    if message.from_user.username in admins:
+        await message.answer("Авторизация прошла успешно")
+        await state.set_state(AdminStates.menu)
+        await menu_handler(message, state)
+        return
 
 
 # Загрузка фото
