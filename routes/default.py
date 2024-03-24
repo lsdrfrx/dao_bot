@@ -45,10 +45,10 @@ async def command_start_handler(message: Message, state: FSMContext, db: DB):
 @default_router.message(RulesAccept.accepting, F.text == "Начать")
 async def accept_handler(message: Message, state: FSMContext, db: DB):
     if db.user_exists(message.from_user.username):
-        await message.answer("Вы уже проходили первый этап")
+        await message.answer("Вы уже проходили тестирование, продолжение невозможно")
         await state.clear()
     else:
-        await message.answer("Приступим", reply_markup=ReplyKeyboardRemove())
+        await message.answer("Приступим.", reply_markup=ReplyKeyboardRemove())
         db.add_user(message.from_user.username)
         await state.set_state(GameStates.preparation)
         await preparation(message, state, db)
