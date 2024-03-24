@@ -17,7 +17,8 @@ class RulesAccept(StatesGroup):
 
 
 @default_router.message(CommandStart())
-async def command_start_handler(message: Message, state: FSMContext):
+async def command_start_handler(message: Message, state: FSMContext, db: DB):
+    promo_available = db.get_promocode_count() > 0
     await message.answer(
         f"""Приветствуем!
 
@@ -29,11 +30,7 @@ async def command_start_handler(message: Message, state: FSMContext):
 На диагностику одного фото отведено 5 минут. 
 Минимальное количество правильных ответов для прохождения 7 баллов.
 
-Доступно для розыгрыша: ... билетов.
-
-К сожалению, билеты для бесплатного участия закончились, но вы все равно можете
-пройти тестирование.
-""",
+{'Доступно для розыгрыша: ... билетов.' if promo_available else 'К сожалению, билеты для бесплатного участия закончились, но вы все равно можете пройти тестирование.'}""",
         reply_markup=ReplyKeyboardMarkup(
             keyboard=[
                 [KeyboardButton(text="Начать")],
@@ -52,7 +49,7 @@ async def accept_handler(message: Message, state: FSMContext, db: DB):
         await state.clear()
     else:
         await message.answer("Приступим", reply_markup=ReplyKeyboardRemove())
-        # db.add_user(message.from_user.username)
+        db.add_user(message.from_user.username)
         await state.set_state(GameStates.preparation)
         await preparation(message, state, db)
 

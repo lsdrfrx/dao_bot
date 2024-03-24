@@ -27,7 +27,7 @@ async def preparation(message: Message, state: FSMContext, db: DB):
     with open("/tmp/dao/images.json", "r") as f:
         data = json.load(f)
 
-    items = random.choices(data["photos"], k=3)
+    items = random.sample(data["photos"], 10)
     await state.update_data(
         photos=items,
         answer=None,
@@ -89,7 +89,12 @@ async def game_loop(message: Message, state: FSMContext, db: DB):
     )
 
     timer.start()
-    data["photos"].pop(0)
+    if message.text == "Пропустить" and not data["photos"][0].get("skipped", False):
+        data["photos"][0]["skipped"] = True
+        data["photos"].append(data["photos"].pop(0))
+    else:
+        data["photos"].pop(0)
+
     await state.update_data(
         answer=answer,
         timer=timer,
@@ -108,17 +113,17 @@ async def timeout(message: Message, state: FSMContext, db: DB):
 async def finish_game(message: Message, state: FSMContext, db: DB):
     data = await state.get_data()
     correct = data["correct"]
-    if correct >= 7:
-        promocode = db.issue_promocode()
-        if promocode is not None:
-            await message.answer(
-                f"""Поздравляем!
+    promo_available = db.get_promocode_count() > 0
+    await message.answer(
+        f"""Поздравляем!
 
-Вы набрали {correct} верных ответов из 10!
-Ваш промокод на бесплатное участие в Игре Магов {promocode}
+Вы набрали {correct} верных ответов из 10.
+{f'Ваш промокод на бесплатное участие в Игре Магов {promocode}' if correct >= 7
+and
+else ''}
+
 Просим обратиться к секретарю Школы для добавления в чат мероприятия @sup_iz_chaosa
-Ответы на фото будут высланы автоматически после ...марта."""
-            )
+Ответы на фото будут высланы автоматически после ...марта.""")
         else:
             await message.answer(
                 f"""Поздравляем!
